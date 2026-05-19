@@ -41,6 +41,19 @@ jobs:
         run: |
           git clone https://github.com/microsoft/vcpkg ~/vcpkg
           ~/vcpkg/bootstrap-vcpkg.sh
+
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/vcpkg/installed
+            ~/vcpkg/packages
+          key: vcpkg-linux-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-linux-
+
+      - name: Install vcpkg dependencies
+        run: |
           export VCPKG_ROOT=~/vcpkg
           $VCPKG_ROOT/vcpkg install --x-install-root="$VCPKG_ROOT/installed"
 
@@ -68,3 +81,70 @@ jobs:
         with:
           name: SupportDesk-Linux
           path: flutter/build/linux/x64/release/bundle/
+
+  build-windows:
+    name: Windows Build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+
+      - name: Setup vcpkg
+        shell: bash
+        run: |
+          git clone https://github.com/microsoft/vcpkg /c/vcpkg
+          cd /c/vcpkg
+          ./bootstrap-vcpkg.bat
+
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:\vcpkg\installed
+            C:\vcpkg\packages
+          key: vcpkg-windows-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            vcpkg-windows-
+
+      - name: Install vcpkg dependencies
+        shell: bash
+        run: |
+          export VCPKG_ROOT=/c/vcpkg
+          /c/vcpkg/vcpkg install --x-install-root="/c/vcpkg/installed"
+
+      - name: Apply server config from deploy.env
+        shell: bash
+        run: |
+          source deploy.env
+          sed -i "s|pub const RENDEZVOUS_SERVERS: &\[&str\] = &\[.*\];|pub const RENDEZVOUS_SERVERS: \&[\&str] = \&[\"$RENDEZVOUS_SERVER\"];|" libs/hbb_common/src/config.rs
+          sed -i "s|pub const RS_PUB_KEY: &str = \".*\";|pub const RS_PUB_KEY: \&str = \"$SERVER_KEY\";|" libs/hbb_common/src/config.rs
+          sed -i "s|return v.isNotEmpty ? v : '.*';|return v.isNotEmpty ? v : '$SUPPORT_SERVER_URL';|" flutter/lib/desktop/pages/desktop_home_page.dart
+          sed -i "s|return v.isNotEmpty ? v : '.*';|return v.isNotEmpty ? v : '$SUPPORT_SERVER_URL';|" flutter/lib/mobile/pages/connection_page.dart
+
+      - name: Build Rust library
+        shell: bash
+        run: |
+          export VCPKG_ROOT=/c/vcpkg
+          cargo build --features flutter --lib --release
+
+      - name: Flutter pub get
+        shell: bash
+        run: cd flutter && flutter pub get
+
+      - name: Build Flutter Windows
+        shell: bash
+        run: cd flutter && flutter build windows --release
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SupportDesk-Windows
+          path: flutter/build/windows/x64/runner/Release/
