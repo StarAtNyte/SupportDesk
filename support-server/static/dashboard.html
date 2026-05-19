@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Support Dashboard</title>
+        <style>
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    sans-serif;
+                background: #f1f5f9;
+                color: #1e293b;
+                min-height: 100vh;
+            }
+            header {
+                background: #1e293b;
+                color: #fff;
+                padding: 16px 32px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            header h1 {
+                font-size: 18px;
+                font-weight: 700;
+            }
+            #ws-status {
+                font-size: 13px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            #ws-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #ef4444;
+                transition: background 0.3s;
+            }
+            #ws-dot.connected {
+                background: #22c55e;
+            }
+
+            main {
+                max-width: 860px;
+                margin: 32px auto;
+                padding: 0 16px;
+            }
+            #stats {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
+                margin-bottom: 28px;
+            }
+            .stat-card {
+                background: #fff;
+                border-radius: 12px;
+                padding: 20px 24px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            }
+            .stat-card .value {
+                font-size: 32px;
+                font-weight: 700;
+            }
+            .stat-card .label {
+                font-size: 13px;
+                color: #64748b;
+                margin-top: 4px;
+            }
+            .stat-card.pending .value {
+                color: #f59e0b;
+            }
+            .stat-card.ready .value {
+                color: #2563eb;
+            }
+            .stat-card.active .value {
+                color: #22c55e;
+            }
+
+            h2 {
+                font-size: 16px;
+                font-weight: 600;
+                margin-bottom: 14px;
+                color: #475569;
+            }
+
+            #sessions-list {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .session-card {
+                background: #fff;
+                border-radius: 12px;
+                padding: 20px 24px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 16px;
+                animation: slideIn 0.2s ease;
+            }
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-6px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            .session-card.closed {
+                opacity: 0.45;
+            }
+
+            .session-info {
+                flex: 1;
+                min-width: 0;
+            }
+            .session-name {
+                font-weight: 600;
+                font-size: 15px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .session-meta {
+                font-size: 12px;
+                color: #94a3b8;
+                margin-top: 6px;
+            }
+            .session-message {
+                font-size: 12px;
+                color: #475569;
+                margin-top: 5px;
+                font-style: italic;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .session-rdid {
+                font-family: monospace;
+                font-size: 18px;
+                font-weight: 700;
+                color: #2563eb;
+                letter-spacing: 1px;
+            }
+            .session-rdid.empty {
+                font-size: 13px;
+                color: #94a3b8;
+                font-family: inherit;
+                font-weight: 400;
+            }
+
+            .badge {
+                display: inline-block;
+                padding: 3px 10px;
+                border-radius: 99px;
+                font-size: 11px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .badge.pending {
+                background: #fef3c7;
+                color: #92400e;
+            }
+            .badge.ready {
+                background: #dbeafe;
+                color: #1e40af;
+            }
+            .badge.active {
+                background: #dcfce7;
+                color: #166534;
+            }
+            .badge.closed {
+                background: #f1f5f9;
+                color: #94a3b8;
+            }
+
+            .session-actions {
+                display: flex;
+                gap: 8px;
+                flex-shrink: 0;
+            }
+            .btn {
+                padding: 8px 16px;
+                border: none;
+                border-radius: 8px;
+                font-size: 13px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background 0.15s;
+            }
+            .btn-connect {
+                background: #2563eb;
+                color: #fff;
+            }
+            .btn-connect:hover:not(:disabled) {
+                background: #1d4ed8;
+            }
+            .btn-connect:disabled {
+                background: #93c5fd;
+                cursor: default;
+            }
+            .btn-close {
+                background: #f1f5f9;
+                color: #64748b;
+            }
+            .btn-close:hover {
+                background: #e2e8f0;
+            }
+
+            #empty {
+                text-align: center;
+                padding: 60px 20px;
+                color: #94a3b8;
+            }
+            #empty svg {
+                margin-bottom: 16px;
+                opacity: 0.4;
+            }
+            #empty p {
+                font-size: 15px;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>&#128187; Support Dashboard</h1>
+            <div id="ws-status">
+                <div id="ws-dot"></div>
+                <span id="ws-label">Connecting...</span>
+            </div>
+        </header>
+
+        <main>
+            <div id="stats">
+                <div class="stat-card pending">
+                    <div class="value" id="count-pending">0</div>
+                    <div class="label">Waiting</div>
+                </div>
+                <div class="stat-card ready">
+                    <div class="value" id="count-ready">0</div>
+                    <div class="label">Ready to Connect</div>
+                </div>
+                <div class="stat-card active">
+                    <div class="value" id="count-active">0</div>
+                    <div class="label">Active Sessions</div>
+                </div>
+            </div>
+
+            <h2>Sessions</h2>
+            <div id="sessions-list">
+                <div id="empty">
+                    <svg
+                        width="48"
+                        height="48"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="#94a3b8"
+                        stroke-width="1.5"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                        />
+                    </svg>
+                    <p>No active support sessions</p>
+                </div>
+            </div>
+        </main>
+
+        <script>
+            const sessions = {};
+
+            // ── WebSocket ────────────────────────────────────────────────────────────────
+            function connect() {
+                const proto = location.protocol === "https:" ? "wss" : "ws";
+                const ws = new WebSocket(
+                    `${proto}://${location.host}/ws/agent`,
+                );
+
+                ws.onopen = () => {
+                    document
+                        .getElementById("ws-dot")
+                        .classList.add("connected");
+                    document.getElementById("ws-label").textContent = "Live";
+                };
+
+                ws.onclose = () => {
+                    document
+                        .getElementById("ws-dot")
+                        .classList.remove("connected");
+                    document.getElementById("ws-label").textContent =
+                        "Reconnecting...";
+                    setTimeout(connect, 3000);
+                };
+
+                ws.onmessage = (e) => {
+                    const msg = JSON.parse(e.data);
+                    if (msg.type === "initial") {
+                        msg.sessions.forEach((s) => {
+                            sessions[s.id] = s;
+                        });
+                    } else if (
+                        msg.type === "new_session" ||
+                        msg.type === "session_updated"
+                    ) {
+                        sessions[msg.session.id] = msg.session;
+                        if (msg.type === "new_session") {
+                            notifyAgent(msg.session);
+                        }
+                    }
+                    render();
+                };
+            }
+
+            // ── Browser notification ──────────────────────────────────────────────────────
+            if (Notification.permission === "default")
+                Notification.requestPermission();
+
+            function notifyAgent(session) {
+                if (Notification.permission === "granted") {
+                    new Notification("New Support Request", {
+                        body: `Session ${session.id.slice(0, 8)} — waiting for installer to run`,
+                        icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><text y='20' font-size='20'>💬</text></svg>",
+                    });
+                }
+            }
+
+            // ── Render ────────────────────────────────────────────────────────────────────
+            function render() {
+                const list = Object.values(sessions).sort(
+                    (a, b) => new Date(b.created_at) - new Date(a.created_at),
+                );
+
+                // Counts (exclude closed)
+                const pending = list.filter(
+                    (s) => s.status === "pending",
+                ).length;
+                const ready = list.filter((s) => s.status === "ready").length;
+                const active = list.filter((s) => s.status === "active").length;
+                document.getElementById("count-pending").textContent = pending;
+                document.getElementById("count-ready").textContent = ready;
+                document.getElementById("count-active").textContent = active;
+
+                const container = document.getElementById("sessions-list");
+                const visible = list.filter((s) => s.status !== "closed");
+
+                if (visible.length === 0) {
+                    container.innerHTML = `
+        <div id="empty">
+          <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+          <p>No active support sessions</p>
+        </div>`;
+                    return;
+                }
+
+                container.innerHTML = visible
+                    .map((s) => {
+                        const shortId = s.id.slice(0, 8).toUpperCase();
+                        const ago = timeAgo(s.created_at);
+                        const displayName = s.name
+                            ? escHtml(s.name)
+                            : `Session ${shortId}`;
+                        const msgLine = s.message
+                            ? `<div class="session-message" title="${escHtml(s.message)}">&ldquo;${escHtml(s.message)}&rdquo;</div>`
+                            : "";
+                        const rdid = s.rustdesk_id
+                            ? `<div class="session-rdid">${s.rustdesk_id}</div>`
+                            : s.status === "ready"
+                              ? `<div class="session-rdid empty">App open &mdash; ask user for ID</div>`
+                              : `<div class="session-rdid empty">Installing&hellip;</div>`;
+                        const canConnect =
+                            s.status === "ready" && s.rustdesk_id;
+
+                        return `
+        <div class="session-card ${s.status}" id="card-${s.id}">
+          <div class="session-info">
+            <div class="session-name">${displayName}</div>
+            <div class="session-meta">Requested ${ago}${s.name ? ` &middot; #${shortId}` : ""}</div>
+            ${msgLine}
+          </div>
+          ${rdid}
+          <span class="badge ${s.status}">${s.status}</span>
+          <div class="session-actions">
+            <button class="btn btn-connect" onclick="connectSession('${s.id}','${s.rustdesk_id || ""}')"
+              ${canConnect ? "" : "disabled"}>
+              Connect
+            </button>
+            <button class="btn btn-close" onclick="closeSession('${s.id}')">
+              Close
+            </button>
+          </div>
+        </div>`;
+                    })
+                    .join("");
+            }
+
+            function connectSession(id, rdId) {
+                if (!rdId) return;
+                // Mark as active
+                fetch(`/api/session/${id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ status: "active" }),
+                });
+                // Open Helpdesk deep link
+                window.location.href = `rustdesk://connect/${rdId}`;
+            }
+
+            function closeSession(id) {
+                fetch(`/api/session/${id}`, { method: "DELETE" }).then(() => {
+                    sessions[id] = { ...sessions[id], status: "closed" };
+                    render();
+                });
+            }
+
+            function timeAgo(iso) {
+                const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
+                if (diff < 60) return `${diff}s ago`;
+                if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+                return `${Math.floor(diff / 3600)}h ago`;
+            }
+
+            function escHtml(s) {
+                return s
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;");
+            }
+
+            connect();
+            // Refresh timestamps every 30s
+            setInterval(render, 30000);
+        </script>
+    </body>
+</html>

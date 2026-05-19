@@ -1,0 +1,14 @@
+services:
+  rustdesk-support:
+    build: .
+    container_name: rustdesk-support
+    restart: unless-stopped
+    ports:
+      - "3030:3030"
+    volumes:
+      - ./static:/app/static
+    environment:
+      - PORT=3030
+      - GMAIL_USER=${GMAIL_USER}
+      - GMAIL_APP_PASSWORD=${GMAIL_APP_PASSWORD}
+      - NOTIFY_EMAIL=${NOTIFY_EMAIL}

@@ -1,0 +1,125 @@
+name: Build SupportDesk
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: '3.27.4'
+
+jobs:
+  build-linux:
+    name: Linux Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libvpx-dev libopus-dev libaom-dev \
+            cmake clang libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+            libayatana-appindicator3-dev libxcb-randr0-dev libxdo-dev libxfixes-dev \
+            libxcb-shape0-dev libxcb-xfixes0-dev libasound2-dev libva-dev \
+            libpam0g-dev libsystemd-dev libjpeg-turbo8-dev nasm yasm \
+            autoconf automake libtool
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+
+      - name: Setup vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg ~/vcpkg
+          ~/vcpkg/bootstrap-vcpkg.sh
+          export VCPKG_ROOT=~/vcpkg
+          $VCPKG_ROOT/vcpkg install --x-install-root="$VCPKG_ROOT/installed"
+
+      - name: Apply server config from deploy.env
+        run: |
+          source deploy.env
+          # Patch RENDEZVOUS_SERVERS
+          sed -i "s|pub const RENDEZVOUS_SERVERS: &\[&str\] = &\[.*\];|pub const RENDEZVOUS_SERVERS: \&[\&str] = \&[\"$RENDEZVOUS_SERVER\"];|" libs/hbb_common/src/config.rs
+          # Patch RS_PUB_KEY
+          sed -i "s|pub const RS_PUB_KEY: &str = \".*\";|pub const RS_PUB_KEY: \&str = \"$SERVER_KEY\";|" libs/hbb_common/src/config.rs
+          # Patch support-server-url in Dart
+          sed -i "s|return v.isNotEmpty ? v : '.*';|return v.isNotEmpty ? v : '$SUPPORT_SERVER_URL';|" flutter/lib/desktop/pages/desktop_home_page.dart
+          sed -i "s|return v.isNotEmpty ? v : '.*';|return v.isNotEmpty ? v : '$SUPPORT_SERVER_URL';|" flutter/lib/mobile/pages/connection_page.dart
+
+      - name: Build Rust library
+        run: |
+          export VCPKG_ROOT=~/vcpkg
+          cargo build --features flutter --lib --release
+
+      - name: Flutter pub get
+        run: cd flutter && flutter pub get
+
+      - name: Build Flutter Linux
+        run: cd flutter && flutter build linux --release
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SupportDesk-Linux
+          path: flutter/build/linux/x64/release/bundle/
+
+  build-windows:
+    name: Windows Build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+
+      - name: Setup vcpkg
+        run: |
+          git clone https://github.com/microsoft/vcpkg C:\vcpkg
+          C:\vcpkg\bootstrap-vcpkg.bat
+          echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
+
+      - name: Install vcpkg dependencies
+        run: |
+          $env:VCPKG_ROOT = "C:\vcpkg"
+          C:\vcpkg\vcpkg install --x-install-root="C:\vcpkg\installed"
+
+      - name: Apply server config from deploy.env
+        shell: bash
+        run: |
+          source deploy.env
+          sed -i "s|pub const RENDEZVOUS_SERVERS: &\[&str\] = &\[.*\];|pub const RENDEZVOUS_SERVERS: \&[\&str] = \&[\"$RENDEZVOUS_SERVER\"];|" libs/hbb_common/src/config.rs
+          sed -i "s|pub const RS_PUB_KEY: &str = \".*\";|pub const RS_PUB_KEY: \&str = \"$SERVER_KEY\";|" libs/hbb_common/src/config.rs
+          sed -i "s|return v.isNotEmpty ? v : '.*';|return v.isNotEmpty ? v : '$SUPPORT_SERVER_URL';|" flutter/lib/desktop/pages/desktop_home_page.dart
+          sed -i "s|return v.isNotEmpty ? v : '.*';|return v.isNotEmpty ? v : '$SUPPORT_SERVER_URL';|" flutter/lib/mobile/pages/connection_page.dart
+
+      - name: Build Rust library
+        run: |
+          $env:VCPKG_ROOT = "C:\vcpkg"
+          cargo build --features flutter --lib --release
+
+      - name: Flutter pub get
+        run: cd flutter && flutter pub get
+
+      - name: Build Flutter Windows
+        run: cd flutter && flutter build windows --release
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SupportDesk-Windows
+          path: flutter/build/windows/x64/runner/Release/
