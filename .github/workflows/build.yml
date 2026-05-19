@@ -47,11 +47,8 @@ jobs:
       - name: Apply server config from deploy.env
         run: |
           source deploy.env
-          # Patch RENDEZVOUS_SERVERS
           sed -i "s|pub const RENDEZVOUS_SERVERS: &\[&str\] = &\[.*\];|pub const RENDEZVOUS_SERVERS: \&[\&str] = \&[\"$RENDEZVOUS_SERVER\"];|" libs/hbb_common/src/config.rs
-          # Patch RS_PUB_KEY
           sed -i "s|pub const RS_PUB_KEY: &str = \".*\";|pub const RS_PUB_KEY: \&str = \"$SERVER_KEY\";|" libs/hbb_common/src/config.rs
-          # Patch support-server-url in Dart
           sed -i "s|return v.isNotEmpty ? v : '.*';|return v.isNotEmpty ? v : '$SUPPORT_SERVER_URL';|" flutter/lib/desktop/pages/desktop_home_page.dart
           sed -i "s|return v.isNotEmpty ? v : '.*';|return v.isNotEmpty ? v : '$SUPPORT_SERVER_URL';|" flutter/lib/mobile/pages/connection_page.dart
 
@@ -88,15 +85,18 @@ jobs:
           channel: stable
 
       - name: Setup vcpkg
+        shell: bash
         run: |
-          git clone https://github.com/microsoft/vcpkg C:\vcpkg
-          C:\vcpkg\bootstrap-vcpkg.bat
-          echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
+          git clone https://github.com/microsoft/vcpkg /c/vcpkg
+          cd /c/vcpkg
+          ./bootstrap-vcpkg.bat
+          echo "VCPKG_ROOT=C:\\vcpkg" >> $GITHUB_ENV
 
       - name: Install vcpkg dependencies
+        shell: bash
         run: |
-          $env:VCPKG_ROOT = "C:\vcpkg"
-          C:\vcpkg\vcpkg install --x-install-root="C:\vcpkg\installed"
+          export VCPKG_ROOT=/c/vcpkg
+          /c/vcpkg/vcpkg install --x-install-root="/c/vcpkg/installed"
 
       - name: Apply server config from deploy.env
         shell: bash
@@ -108,14 +108,17 @@ jobs:
           sed -i "s|return v.isNotEmpty ? v : '.*';|return v.isNotEmpty ? v : '$SUPPORT_SERVER_URL';|" flutter/lib/mobile/pages/connection_page.dart
 
       - name: Build Rust library
+        shell: bash
         run: |
-          $env:VCPKG_ROOT = "C:\vcpkg"
+          export VCPKG_ROOT=/c/vcpkg
           cargo build --features flutter --lib --release
 
       - name: Flutter pub get
+        shell: bash
         run: cd flutter && flutter pub get
 
       - name: Build Flutter Windows
+        shell: bash
         run: cd flutter && flutter build windows --release
 
       - name: Upload Windows artifact
