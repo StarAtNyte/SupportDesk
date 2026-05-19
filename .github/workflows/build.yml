@@ -10,6 +10,7 @@ on:
 
 env:
   FLUTTER_VERSION: '3.27.4'
+  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
 jobs:
   build-linux:
@@ -17,6 +18,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Export GitHub Actions cache
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - name: Install system dependencies
         run: |
@@ -41,16 +49,6 @@ jobs:
         run: |
           git clone https://github.com/microsoft/vcpkg ~/vcpkg
           ~/vcpkg/bootstrap-vcpkg.sh
-
-      - name: Cache vcpkg packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/vcpkg/installed
-            ~/vcpkg/packages
-          key: vcpkg-linux-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            vcpkg-linux-
 
       - name: Install vcpkg dependencies
         run: |
@@ -84,9 +82,16 @@ jobs:
 
   build-windows:
     name: Windows Build
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
+
+      - name: Export GitHub Actions cache
+        uses: actions/github-script@v6
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -103,16 +108,6 @@ jobs:
           git clone https://github.com/microsoft/vcpkg /c/vcpkg
           cd /c/vcpkg
           ./bootstrap-vcpkg.bat
-
-      - name: Cache vcpkg packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            C:\vcpkg\installed
-            C:\vcpkg\packages
-          key: vcpkg-windows-${{ hashFiles('vcpkg.json') }}
-          restore-keys: |
-            vcpkg-windows-
 
       - name: Install vcpkg dependencies
         shell: bash
