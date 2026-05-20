@@ -144,24 +144,41 @@ Open port `3030 TCP` in your firewall.
 
 ## Step 4 — Build the Client Installer (Windows .exe)
 
+> **Build runs on your local dev machine, not the server.**
+> The server only needs the finished `.exe` — you upload it after building.
+
 The client installer is an NSIS-based `.exe` that:
-1. Installs RustDesk silently
+1. Installs the customized RustDesk (with Request Support button) silently
 2. Writes the pre-configured server + key into `RustDesk2.toml`
 3. Launches RustDesk and reads the generated ID
 4. POSTs the ID directly to the support server — no copy-pasting needed
 5. Shows a finish screen with the ID for reference
 
-**Requirements:** NSIS (`sudo apt-get install -y nsis`)
+**Requirements on your local machine:**
+- Flutter SDK with Windows desktop target: `flutter config --enable-windows-desktop`
+- NSIS: `sudo apt-get install -y nsis` (WSL/Linux) or `choco install nsis` (Windows)
+- Rust + cargo
+
+**Build:**
 
 ```bash
+# Copy .env from the server (or create locally with same values as your .env on EC2)
+cp .env.example .env   # fill in SERVER_HOST, SERVER_KEY, SERVER_URL
+
 cd installer/
 ./build.sh
 # Output: ../static/SupportClient-Setup.exe
 ```
 
-The `.exe` is automatically served by the support server at `/download/windows-installer`.
+**Upload to server** (the `static/` dir is volume-mounted — no docker restart needed):
 
-> Re-run `build.sh` any time you update `.env` (e.g. after changing the server key).
+```bash
+scp static/SupportClient-Setup.exe ubuntu@YOUR_SERVER_IP:~/support-server/static/
+```
+
+The `.exe` is immediately served at `/download/windows-installer` — no restart required.
+
+> Re-run `build.sh` + re-upload any time you update `.env` (e.g. after changing the server IP or key).
 
 ---
 
@@ -306,10 +323,11 @@ Then update `SERVER_URL` in `.env` and the widget embed to use `https://support.
 
 ## Production Checklist
 
-- [ ] Run `setup-server.sh` — note the IP and key printed at the end
+- [ ] Run `setup-server.sh` on EC2 — note the IP and key printed at the end
 - [ ] Fill in `.env` with `SERVER_HOST`, `SERVER_KEY`, `SERVER_URL`, and Gmail vars
-- [ ] Build client installer: `cd installer && ./build.sh`
-- [ ] Deploy support server: `docker compose up -d`
+- [ ] Deploy support server on EC2: `docker compose up -d`
+- [ ] **Locally:** copy `.env` to your dev machine, run `cd installer && ./build.sh`
+- [ ] **Locally:** upload the built exe: `scp static/SupportClient-Setup.exe ubuntu@SERVER_IP:~/support-server/static/`
 - [ ] Open port `3030 TCP` in firewall
 - [ ] Set up Nginx + HTTPS if your site uses `https://` (and update `SERVER_URL` in `.env`)
 - [ ] Run agent install script on each support machine
