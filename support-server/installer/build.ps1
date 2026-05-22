@@ -78,7 +78,7 @@ Log "Flutter : $flutterVersion"
 Log "Building Rust library (cargo build --lib --release)..."
 Push-Location $RepoRoot
 try {
-    cargo build --lib --release
+    cargo build --lib --release --features flutter
     if ($LASTEXITCODE -ne 0) { Err "cargo build failed." }
     if (!(Test-Path (Join-Path $RepoRoot 'target\release\librustdesk.dll'))) {
         Err "cargo build succeeded but librustdesk.dll was not found. Check Rust source."

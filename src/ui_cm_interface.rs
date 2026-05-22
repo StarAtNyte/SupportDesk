@@ -970,7 +970,6 @@ async fn handle_fs(
                 file_num,
                 false,
                 false,
-                file_entries,
                 overwrite_detection,
             );
             job.total_size = total_size;
