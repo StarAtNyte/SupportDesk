@@ -4,72 +4,497 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Request Remote Support</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    :root { --c: #2563eb; }
+    :root {
+      --bg:       #f0f4f8;
+      --card:     #ffffff;
+      --border:   #dde4ed;
+      --border2:  #c4d0df;
+      --text:     #0f1e32;
+      --muted:    #6b7f96;
+      --muted2:   #9bafc4;
+      --accent:   #0891b2;
+      --accent-h: #0e7490;
+      --accent-s: rgba(8,145,178,0.1);
+      --green:    #059669;
+      --green-s:  rgba(5,150,105,0.1);
+      --red:      #dc2626;
+      --font-ui:  'Syne', system-ui, sans-serif;
+      --font-mono:'DM Mono', monospace;
+      --radius:   14px;
+    }
 
     body {
-      font-family: system-ui, -apple-system, sans-serif;
-      background: #f1f5f9;
-      color: #1e293b;
+      font-family: var(--font-ui);
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      /* Subtle grid background */
+      background-image:
+        linear-gradient(rgba(8,145,178,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(8,145,178,0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
     }
+
+    @keyframes pageFade {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    body { animation: pageFade 0.35s ease forwards; }
 
     /* ── Header ── */
     header {
-      background: #1e293b;
+      background: var(--text);
       color: #fff;
-      padding: 16px 32px;
+      padding: 0 32px;
+      height: 58px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
     }
-    header svg { flex-shrink: 0; }
-    header h1 { font-size: 18px; font-weight: 700; }
 
-    /* ── Main layout ── */
+    .header-logo {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, #22d3ee 0%, #818cf8 100%);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    header h1 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    /* ── Main ── */
     main {
       flex: 1;
       display: flex;
       align-items: flex-start;
       justify-content: center;
-      padding: 48px 16px 64px;
+      padding: 56px 16px 80px;
     }
 
     .card {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-      padding: 40px 36px;
+      background: var(--card);
+      border-radius: 20px;
+      box-shadow:
+        0 1px 3px rgba(0,0,0,0.06),
+        0 8px 32px rgba(15,30,50,0.08),
+        0 0 0 1px var(--border);
+      padding: 44px 40px;
       width: 100%;
-      max-width: 480px;
+      max-width: 500px;
     }
 
     /* ── Form view ── */
+    .card-icon {
+      width: 52px; height: 52px;
+      border-radius: 16px;
+      background: var(--accent-s);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+      border: 1px solid rgba(8,145,178,0.2);
+    }
+    .card-icon svg { color: var(--accent); }
+
     .card-title {
-      font-size: 22px;
-      font-weight: 700;
-      color: #0f172a;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text);
       margin-bottom: 8px;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
     }
     .card-sub {
       font-size: 14px;
-      color: #64748b;
-      line-height: 1.6;
-      margin-bottom: 28px;
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 32px;
     }
 
+    /* ── Fields ── */
     .field { margin-bottom: 20px; }
     .field label {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       font-size: 13px;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 6px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 7px;
+      letter-spacing: 0.01em;
     }
     .field label .opt {
       font-weight: 400;
-      color: #94
+      color: var(--muted2);
+      font-size: 12px;
+    }
+
+    .field input,
+    .field textarea {
+      width: 100%;
+      padding: 11px 14px;
+      background: #f8fafc;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      font-family: var(--font-ui);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+      resize: vertical;
+    }
+    .field input:focus,
+    .field textarea:focus {
+      border-color: var(--accent);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(8,145,178,0.1);
+    }
+    .field input::placeholder,
+    .field textarea::placeholder { color: var(--muted2); }
+
+    /* RustDesk ID field special */
+    #rustdesk_id {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      letter-spacing: 2px;
+      font-weight: 500;
+    }
+
+    .id-hint {
+      font-size: 11px;
+      color: var(--muted2);
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      line-height: 1.5;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 24px 0;
+    }
+
+    /* ── Submit btn ── */
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: var(--font-ui);
+      letter-spacing: 0.01em;
+      transition: background 0.18s, box-shadow 0.18s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-submit:hover:not(:disabled) {
+      background: var(--accent-h);
+      box-shadow: 0 4px 20px rgba(8,145,178,0.3);
+    }
+    .btn-submit:active:not(:disabled) { transform: scale(0.99); }
+    .btn-submit:disabled { opacity: 0.5; cursor: default; }
+
+    /* Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin 0.8s linear infinite; }
+
+    /* ── Error ── */
+    .field-error {
+      font-size: 12px;
+      color: var(--red);
+      margin-top: 5px;
+      display: none;
+    }
+    .field-error.show { display: block; }
+
+    .form-error {
+      background: #fef2f2;
+      border: 1.5px solid #fca5a5;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #991b1b;
+      margin-bottom: 16px;
+      display: none;
+      line-height: 1.55;
+    }
+    .form-error.show { display: block; }
+
+    /* ── Success state ── */
+    #success-view {
+      display: none;
+      text-align: center;
+      padding: 16px 0 8px;
+    }
+    #success-view.show { display: block; }
+
+    .success-ring {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: var(--green-s);
+      border: 2px solid rgba(5,150,105,0.25);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px;
+      animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes popIn {
+      from { transform: scale(0.6); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+    .success-ring svg { color: var(--green); }
+
+    .success-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.03em;
+      margin-bottom: 10px;
+    }
+    .success-sub {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 24px;
+    }
+
+    .success-id-box {
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+    }
+    .success-id-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #166534;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+    .success-id {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 500;
+      color: #15803d;
+      letter-spacing: 3px;
+    }
+
+    .success-notice {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 12px 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-logo">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="2.2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+      </svg>
+    </div>
+    <h1>Remote Support</h1>
+  </header>
+
+  <main>
+    <div class="card">
+
+      <!-- ── Form view ── -->
+      <div id="form-view">
+        <div class="card-icon">
+          <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+        </div>
+
+        <div class="card-title">Request Remote Support</div>
+        <div class="card-sub">
+          Enter your RustDesk ID so our team can connect to your screen securely.
+          Your ID is shown in the RustDesk app on your desktop.
+        </div>
+
+        <div class="form-error" id="form-error"></div>
+
+        <form id="support-form" novalidate>
+
+          <div class="field">
+            <label for="rustdesk_id">
+              Your RustDesk ID
+              <span style="font-size:11px;color:#dc2626;font-weight:700">Required</span>
+            </label>
+            <input
+              type="text"
+              id="rustdesk_id"
+              name="rustdesk_id"
+              placeholder="123 456 789"
+              autocomplete="off"
+              spellcheck="false"
+              inputmode="numeric"
+            />
+            <div class="id-hint">
+              <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:.55">
+                <circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 8v4m0 4h.01"/>
+              </svg>
+              Open RustDesk → your 9-digit ID is shown in the centre of the main window
+            </div>
+            <div class="field-error" id="error-rdid">Please enter your RustDesk ID</div>
+          </div>
+
+          <div class="field">
+            <label for="name">
+              Your name
+              <span class="opt">Optional</span>
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              placeholder="e.g. Jane Smith"
+              autocomplete="name"
+            />
+          </div>
+
+          <div class="field">
+            <label for="message">
+              What's the issue?
+              <span class="opt">Optional</span>
+            </label>
+            <textarea
+              id="message"
+              name="message"
+              placeholder="Briefly describe what you need help with…"
+              rows="3"
+            ></textarea>
+          </div>
+
+          <hr class="divider" />
+
+          <button type="submit" class="btn-submit" id="submit-btn">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+            Request Support
+          </button>
+
+        </form>
+      </div>
+
+      <!-- ── Success view ── -->
+      <div id="success-view">
+        <div class="success-ring">
+          <svg width="34" height="34" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+        </div>
+
+        <div class="success-title">Request Sent!</div>
+        <div class="success-sub">
+          Our support team has been notified and will connect shortly.
+        </div>
+
+        <div class="success-id-box">
+          <div class="success-id-label">Your RustDesk ID</div>
+          <div class="success-id" id="confirmed-rdid">—</div>
+        </div>
+
+        <div class="success-notice">
+          Keep <strong>RustDesk</strong> open on your desktop and accept the incoming connection request when our agent connects.
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    const form      = document.getElementById("support-form");
+    const submitBtn = document.getElementById("submit-btn");
+    const formError = document.getElementById("form-error");
+    const errorRdid = document.getElementById("error-rdid");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      // Validate
+      const rdid = document.getElementById("rustdesk_id").value.trim().replace(/\s+/g, "");
+      const name = document.getElementById("name").value.trim();
+      const msg  = document.getElementById("message").value.trim();
+
+      errorRdid.classList.remove("show");
+      formError.classList.remove("show");
+
+      if (!rdid) {
+        errorRdid.classList.add("show");
+        document.getElementById("rustdesk_id").focus();
+        return;
+      }
+
+      // Submit
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `
+        <svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+        </svg>
+        Sending…
+      `;
+
+      try {
+        const payload = { rustdesk_id: rdid };
+        if (name) payload.name    = name;
+        if (msg)  payload.message = msg;
+
+        const res = await fetch("/api/support-request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (!res.ok) throw new Error(`Server responded ${res.status}`);
+
+        // Show success
+        document.getElementById("confirmed-rdid").textContent = rdid;
+        document.getElementById("form-view").style.display = "none";
+        const sv = document.getElementById("success-view");
+        sv.classList.add("show");
+
+      } catch (err) {
+        formError.textContent = "Something went wrong. Please try again or contact support directly.";
+        formError.classList.add("show");
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+          Request Support
+        `;
+      }
+    });
+  </script>
+</body>
+</html>

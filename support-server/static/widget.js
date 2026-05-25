@@ -6,10 +6,10 @@
 
   // ── Config (all overridable via data-* attributes) ────────────────────────────
   const CONFIG = {
-    color    : _script.dataset.color    || "#2563eb",
+    color    : _script.dataset.color    || "#0891b2",
     label    : _script.dataset.label    || "Remote Support",
     position : _script.dataset.position || "right",
-    bottom   : _script.dataset.bottom   || "0",      // flush to bottom edge
+    bottom   : _script.dataset.bottom   || "0",
     side     : _script.dataset.side     || "24",
   };
 
@@ -28,14 +28,16 @@
     const side = CONFIG.position === "left" ? "left" : "right";
     return `
       :root {
-        --rd-c: ${CONFIG.color};
+        --rd-c:          ${CONFIG.color};
         --rd-btn-${side}: ${CONFIG.side}px;
-        --rd-btn-bottom: ${CONFIG.bottom}px;
+        --rd-btn-bottom:  ${CONFIG.bottom}px;
       }
     `;
   }
 
   const css = `
+    @import url('https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Mono:wght@400;500&display=swap');
+
     #rd-widget-btn {
       position: fixed;
       bottom: var(--rd-btn-bottom, 0px);
@@ -45,129 +47,256 @@
       color: #fff;
       border: none;
       border-radius: 14px 14px 0 0;
-      padding: 16px 30px 20px;
-      font-size: 16px;
+      padding: 14px 28px 18px;
+      font-size: 14px;
       font-weight: 700;
       cursor: pointer;
-      box-shadow: 0 -4px 24px color-mix(in srgb, var(--rd-c) 50%, transparent);
+      box-shadow:
+        0 -4px 24px color-mix(in srgb, var(--rd-c) 45%, transparent),
+        0 -1px 0 color-mix(in srgb, var(--rd-c) 60%, #fff);
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-family: system-ui, sans-serif;
-      transition: filter 0.2s, transform 0.2s;
+      gap: 9px;
+      font-family: 'Syne', system-ui, sans-serif;
+      transition: filter 0.2s, transform 0.18s, box-shadow 0.2s;
       letter-spacing: -0.01em;
-      min-width: 200px;
+      min-width: 190px;
       justify-content: center;
     }
     #rd-widget-btn:hover {
-      filter: brightness(0.9);
-      transform: translateY(-3px);
+      filter: brightness(1.08);
+      transform: translateY(-4px);
+      box-shadow:
+        0 -8px 32px color-mix(in srgb, var(--rd-c) 55%, transparent),
+        0 -1px 0 color-mix(in srgb, var(--rd-c) 60%, #fff);
     }
-    #rd-widget-btn svg {
-      flex-shrink: 0;
-    }
+    #rd-widget-btn svg { flex-shrink: 0; }
+
     #rd-overlay {
-      display: none; position: fixed; inset: 0; z-index: 99998;
-      background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      justify-content: center; align-items: center;
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 99998;
+      background: rgba(6,12,26,0.6);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      justify-content: center;
+      align-items: center;
     }
     #rd-overlay.open { display: flex; }
+
     #rd-modal {
       background: #fff;
-      border-radius: 20px;
+      border-radius: 22px;
       padding: 36px 32px 28px;
       width: 100%;
       max-width: 420px;
-      box-shadow: 0 24px 80px rgba(0,0,0,0.22);
-      font-family: system-ui, sans-serif;
+      box-shadow:
+        0 0 0 1px rgba(0,0,0,0.06),
+        0 24px 80px rgba(6,12,26,0.28);
+      font-family: 'Syne', system-ui, sans-serif;
       position: relative;
-      animation: rd-modal-in 0.22s cubic-bezier(0.34,1.56,0.64,1);
+      animation: rd-modal-in 0.24s cubic-bezier(0.34,1.56,0.64,1);
     }
     @keyframes rd-modal-in {
-      from { opacity: 0; transform: scale(0.92) translateY(12px); }
-      to   { opacity: 1; transform: scale(1) translateY(0); }
+      from { opacity: 0; transform: scale(0.9) translateY(16px); }
+      to   { opacity: 1; transform: scale(1)   translateY(0); }
     }
+
     #rd-modal-header {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 20px;
+      gap: 14px;
+      margin-bottom: 22px;
     }
     #rd-modal-icon {
-      width: 42px; height: 42px; border-radius: 12px;
-      background: color-mix(in srgb, var(--rd-c) 12%, transparent);
+      width: 44px; height: 44px;
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--rd-c) 10%, transparent);
+      border: 1.5px solid color-mix(in srgb, var(--rd-c) 20%, transparent);
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
     #rd-modal-icon svg { color: var(--rd-c); }
-    #rd-modal-title { font-size: 17px; font-weight: 700; color: #111; line-height: 1.3; }
-    #rd-modal-sub   { font-size: 13px; color: #64748b; margin-top: 2px; }
-    #rd-modal p  { margin: 0 0 16px; font-size: 14px; color: #555; line-height: 1.6; }
+    #rd-modal-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #0f1e32;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+    #rd-modal-sub {
+      font-size: 12px;
+      color: #7a94b0;
+      margin-top: 3px;
+      font-weight: 500;
+    }
+
+    #rd-modal p {
+      margin: 0 0 16px;
+      font-size: 14px;
+      color: #4a607a;
+      line-height: 1.65;
+    }
+
     #rd-close {
-      position: absolute; top: 16px; right: 18px;
-      background: #f1f5f9; border: none;
-      width: 28px; height: 28px; border-radius: 50%;
-      font-size: 16px; cursor: pointer; color: #64748b;
+      position: absolute;
+      top: 16px; right: 16px;
+      background: #f1f5f9;
+      border: none;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      font-size: 16px;
+      cursor: pointer;
+      color: #6b7f96;
       display: flex; align-items: center; justify-content: center;
-      line-height: 1; transition: background 0.15s;
+      line-height: 1;
+      transition: background 0.15s, color 0.15s;
     }
-    #rd-close:hover { background: #e2e8f0; color: #1e293b; }
+    #rd-close:hover { background: #e2e8f0; color: #0f1e32; }
+
     .rd-btn {
-      width: 100%; padding: 13px; border: none; border-radius: 10px;
-      font-size: 15px; font-weight: 600; cursor: pointer; transition: filter 0.2s;
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 11px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s;
+      font-family: 'Syne', system-ui, sans-serif;
+      letter-spacing: 0.01em;
     }
-    .rd-btn-primary  { background: var(--rd-c); color: #fff; }
-    .rd-btn-primary:hover  { filter: brightness(0.88); }
-    .rd-btn-secondary { background: #f3f4f6; color: #374151; margin-top: 8px; }
-    .rd-btn-secondary:hover { background: #e5e7eb; }
+    .rd-btn-primary {
+      background: var(--rd-c);
+      color: #fff;
+      box-shadow: 0 4px 16px color-mix(in srgb, var(--rd-c) 30%, transparent);
+    }
+    .rd-btn-primary:hover {
+      filter: brightness(0.9);
+      box-shadow: 0 6px 20px color-mix(in srgb, var(--rd-c) 40%, transparent);
+    }
+    .rd-btn-secondary {
+      background: #f3f6fa;
+      color: #374151;
+      margin-top: 8px;
+      border: 1px solid #dde4ed;
+    }
+    .rd-btn-secondary:hover { background: #e8edf5; }
+
     .rd-step { display: none; }
     .rd-step.active { display: block; }
+
     .rd-download-btn {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      width: 100%; padding: 14px; background: var(--rd-c);
-      color: #fff; text-align: center; text-decoration: none;
-      border-radius: 10px; font-size: 15px; font-weight: 600;
-      margin-bottom: 14px; box-sizing: border-box; transition: filter 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      width: 100%;
+      padding: 14px;
+      background: var(--rd-c);
+      color: #fff;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 11px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: 'Syne', system-ui, sans-serif;
+      margin-bottom: 14px;
+      box-sizing: border-box;
+      transition: filter 0.18s, box-shadow 0.18s;
+      box-shadow: 0 4px 16px color-mix(in srgb, var(--rd-c) 30%, transparent);
     }
-    .rd-download-btn:hover { filter: brightness(0.88); }
+    .rd-download-btn:hover {
+      filter: brightness(0.9);
+      box-shadow: 0 6px 24px color-mix(in srgb, var(--rd-c) 40%, transparent);
+    }
+
     .rd-spinner {
-      display: flex; align-items: center; gap: 10px;
-      font-size: 13px; color: #64748b; margin-top: 8px;
-      background: #f8fafc; border-radius: 8px; padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: #7a94b0;
+      margin-top: 10px;
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 11px 14px;
+      border: 1px solid #e8edf5;
     }
-    .rd-spinner svg { animation: rd-spin 1s linear infinite; flex-shrink: 0; }
+    .rd-spinner svg { animation: rd-spin 0.9s linear infinite; flex-shrink: 0; }
     @keyframes rd-spin { to { transform: rotate(360deg); } }
-    .rd-success { text-align: center; padding: 12px 0 8px; }
-    .rd-success .rd-icon { font-size: 48px; display: block; margin-bottom: 14px; }
-    .rd-success h3 { margin: 0 0 8px; font-size: 19px; color: #111; font-weight: 700; }
+
+    .rd-success {
+      text-align: center;
+      padding: 10px 0 16px;
+    }
+    .rd-success-ring {
+      width: 66px; height: 66px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 32px;
+      animation: rd-pop 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes rd-pop {
+      from { transform: scale(0.6); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+    .rd-success h3 {
+      margin: 0 0 4px;
+      font-size: 18px;
+      color: #0f1e32;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
     .rd-notice {
-      background: #f0fdf4; border: 1.5px solid #86efac;
-      border-radius: 10px; padding: 12px 14px; font-size: 13px;
-      color: #166534; margin-bottom: 16px; line-height: 1.6;
+      background: #f0fdf4;
+      border: 1.5px solid #86efac;
+      border-radius: 12px;
+      padding: 13px 16px;
+      font-size: 13px;
+      color: #166534;
+      margin-bottom: 16px;
+      line-height: 1.65;
     }
     .rd-warning-notice {
-      background: #fffbeb; border: 1.5px solid #fcd34d;
-      border-radius: 8px; padding: 10px 12px; font-size: 12px;
-      color: #92400e; margin-bottom: 14px; line-height: 1.5;
+      background: #fffbeb;
+      border: 1.5px solid #fcd34d;
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 12px;
+      color: #92400e;
+      margin-bottom: 14px;
+      line-height: 1.55;
     }
     .rd-error-notice {
-      background: #fef2f2; border: 1.5px solid #fca5a5;
-      border-radius: 10px; padding: 12px 14px; font-size: 13px;
-      color: #991b1b; margin-bottom: 16px; line-height: 1.6;
+      background: #fef2f2;
+      border: 1.5px solid #fca5a5;
+      border-radius: 12px;
+      padding: 13px 16px;
+      font-size: 13px;
+      color: #991b1b;
+      margin-bottom: 16px;
+      line-height: 1.65;
     }
     .rd-countdown {
-      font-size: 12px; color: #94a3b8; text-align: center; margin-top: 12px;
+      font-size: 12px;
+      color: #9bafc4;
+      text-align: center;
+      margin-top: 12px;
     }
     .rd-divider {
-      border: none; border-top: 1px solid #f1f5f9; margin: 16px 0;
+      border: none;
+      border-top: 1px solid #edf0f5;
+      margin: 18px 0;
     }
   `;
 
   const html = `
     <button id="rd-widget-btn">
-      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
         <path stroke-linecap="round" stroke-linejoin="round"
           d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
       </svg>
@@ -180,21 +309,21 @@
 
         <div id="rd-modal-header">
           <div id="rd-modal-icon">
-            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
               <path stroke-linecap="round" stroke-linejoin="round"
                 d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
             </svg>
           </div>
           <div>
             <div id="rd-modal-title">Remote Support</div>
-            <div id="rd-modal-sub">We'll connect to your screen securely</div>
+            <div id="rd-modal-sub">Secure screen sharing session</div>
           </div>
         </div>
 
         <!-- Step: starting -->
         <div id="rd-step-starting" class="rd-step">
-          <div class="rd-spinner" style="justify-content:center;padding:20px;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5">
+          <div class="rd-spinner" style="justify-content:center;padding:20px 14px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9bafc4" stroke-width="2.5">
               <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
             </svg>
             Connecting you to support&hellip;
@@ -204,24 +333,24 @@
         <!-- Step: reconnect -->
         <div id="rd-step-reconnect" class="rd-step">
           <div class="rd-success">
-            <span class="rd-icon">&#128640;</span>
+            <div class="rd-success-ring">🚀</div>
             <h3>Helpdesk is open!</h3>
           </div>
           <div class="rd-notice">
             Our team has been notified. Keep Helpdesk running and accept the incoming connection request.
           </div>
           <div class="rd-spinner">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9bafc4" stroke-width="2.5">
               <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
             </svg>
             Waiting for an agent to connect&hellip;
           </div>
-          <p style="font-size:12px;color:#64748b;margin-top:14px;line-height:1.6">
+          <p style="font-size:12px;color:#7a94b0;margin-top:14px;line-height:1.65">
             You can close this window &mdash; just keep Helpdesk in your taskbar.
           </p>
-          <p style="font-size:12px;color:#94a3b8;margin-top:8px;text-align:center">
+          <p style="font-size:12px;color:#9bafc4;margin-top:8px;text-align:center">
             Agent not connecting?
-            <a id="rd-reconnect-download" href="#" style="color:var(--rd-c);text-decoration:none;font-weight:600">Run the connector again</a>
+            <a id="rd-reconnect-download" href="#" style="color:var(--rd-c);text-decoration:none;font-weight:700">Run the connector again</a>
           </p>
         </div>
 
@@ -229,7 +358,7 @@
         <div id="rd-step-download" class="rd-step">
           <p>Download and run the Support Client. It takes ~30 seconds and shares your ID automatically &mdash; no copy-pasting needed.</p>
           <a id="rd-download-link" class="rd-download-btn" href="#" download>
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
             </svg>
             Download Support Client (.exe)
@@ -238,7 +367,7 @@
             &#9888;&nbsp; Windows may show a security warning &mdash; click <strong>More info &rarr; Run anyway</strong>.
           </div>
           <div class="rd-spinner">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2.5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9bafc4" stroke-width="2.5">
               <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
             </svg>
             Waiting for installer to run&hellip;
@@ -248,7 +377,7 @@
         <!-- Step: ready -->
         <div id="rd-step-ready" class="rd-step">
           <div class="rd-success">
-            <span class="rd-icon">&#128994;</span>
+            <div class="rd-success-ring">🟢</div>
             <h3>Agent on the way!</h3>
           </div>
           <div class="rd-notice">
@@ -260,7 +389,7 @@
         <!-- Step: timeout -->
         <div id="rd-step-timeout" class="rd-step">
           <div class="rd-success">
-            <span class="rd-icon">&#128338;</span>
+            <div class="rd-success-ring">⏰</div>
             <h3>Request received!</h3>
           </div>
           <div class="rd-notice">
@@ -272,7 +401,7 @@
         <!-- Step: error -->
         <div id="rd-step-error" class="rd-step">
           <div class="rd-success">
-            <span class="rd-icon">&#9888;&#65039;</span>
+            <div class="rd-success-ring">⚠️</div>
             <h3>Something went wrong</h3>
           </div>
           <div class="rd-error-notice">
@@ -299,8 +428,8 @@
     div.innerHTML = html;
     document.body.appendChild(div);
 
-    const overlay  = document.getElementById("rd-overlay");
-    const btn      = document.getElementById("rd-widget-btn");
+    const overlay = document.getElementById("rd-overlay");
+    const btn     = document.getElementById("rd-widget-btn");
 
     document.getElementById("rd-close").addEventListener("click", closeModal);
     document.getElementById("rd-close-timeout").addEventListener("click", closeModal);
@@ -378,7 +507,6 @@
       show("rd-step-download");
     }
 
-    // Set download link href
     const dlLink = document.getElementById("rd-download-link");
     if (dlLink) dlLink.href = `${SERVER}/download/windows-installer`;
   }
